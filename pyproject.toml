@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "petrinet-lab"
+version = "0.1.0"
+description = "Petri net toolkit: P/T, time and stochastic nets, process-mining bridge and LLM agent"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Filippo Polidori" }]
+keywords = ["petri-nets", "process-mining", "bpm", "time-petri-nets", "stochastic-petri-nets", "pm4py"]
+dependencies = [
+    "numpy>=1.26",
+    "networkx>=3.2",
+    "matplotlib>=3.8",
+]
+
+[project.urls]
+Homepage = "https://github.com/Polifemu/petrinet-lab"
+Source = "https://github.com/Polifemu/petrinet-lab"
+
+[project.optional-dependencies]
+mining = ["pm4py>=2.7", "pandas>=2.0"]
+interop = ["snakes>=0.9"]
+agent = [
+    "streamlit>=1.35",
+    "langgraph>=0.2",
+    "langchain-core>=0.3",
+    "langchain-openai>=0.2",
+    "langchain-anthropic>=0.2",
+    "langchain-google-genai>=2.0",
+]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/conftest.py" = ["E402"]

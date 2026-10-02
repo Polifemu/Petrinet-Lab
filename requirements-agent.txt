@@ -1,0 +1,6 @@
+streamlit>=1.35
+langgraph>=0.2
+langchain-core>=0.3
+langchain-openai>=0.2
+langchain-anthropic>=0.2
+langchain-google-genai>=2.0
