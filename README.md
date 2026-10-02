@@ -152,6 +152,13 @@ La teoria completa (formule, semantica, algoritmi) è in
 [`docs/theory.md`](docs/theory.md); l'architettura in
 [`docs/architecture.md`](docs/architecture.md].
 
+## Progetti collegati
+
+- [**process-mining-bpi2012**](https://github.com/Polifemu/process-mining-bpi2012) —
+  analisi end-to-end di un event log reale (262.200 eventi, 13.087 casi) con
+  PM4Py: discovery, conformance e performance. Il caso applicativo che
+  complementa questo toolkit: qui il fondamento formale, là i dati reali.
+
 ## Note
 
 - PM4Py (`[mining]`) e SNAKES (`[interop]`) sono dipendenze **opzionali**: i
