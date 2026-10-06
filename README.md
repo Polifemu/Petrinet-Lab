@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Polifemu/petrinet-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/Polifemu/petrinet-lab/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 
 Toolkit Python per **reti di Petri P/T, temporali e stocastiche**, con ponte
 verso il **process mining** (PM4Py) e un **agente LLM** per l'analisi
@@ -164,4 +164,4 @@ La teoria completa (formule, semantica, algoritmi) è in
 - PM4Py (`[mining]`) e SNAKES (`[interop]`) sono dipendenze **opzionali**: i
   test correlati si auto-saltano se non installate. PM4Py è distribuito con
   licenza AGPL v3; verificare i termini per usi commerciali.
-- Licenza progetto: MIT.
+- Licenza progetto: Apache-2.0.

@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Petri net toolkit: P/T, time and stochastic nets, process-mining bridge and LLM agent"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = { text = "Apache-2.0" }
 authors = [{ name = "Filippo Polidori" }]
 keywords = ["petri-nets", "process-mining", "bpm", "time-petri-nets", "stochastic-petri-nets", "pm4py"]
 dependencies = [
