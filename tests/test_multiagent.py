@@ -1,3 +1,8 @@
+import pytest
+
+pytest.importorskip("langchain_core")
+pytest.importorskip("langgraph")
+
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
 from petrinet_lab.agent.multiagent import (
