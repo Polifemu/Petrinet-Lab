@@ -55,7 +55,7 @@ class CTMC:
         return [str(self.marking(i)) for i in range(len(self.states))]
 
 
-def _rate_of(rate: Rate | Mapping[str, Rate], transition_id: str, marking: Marking) -> float:
+def rate_of(rate: Rate | Mapping[str, Rate], transition_id: str, marking: Marking) -> float:
     value = rate[transition_id] if isinstance(rate, Mapping) else rate
     if callable(value):
         resolved = float(value(marking))
@@ -82,7 +82,7 @@ def build_ctmc(
         source = index[key]
         marking = net.marking_from_key(key)
         for transition_id in net.enabled_transitions(marking):
-            rate = _rate_of(rates, transition_id, marking)
+            rate = rate_of(rates, transition_id, marking)
             if rate == 0:
                 continue
             successor_key = net.marking_key(net.fire(marking, transition_id))
@@ -225,7 +225,7 @@ def simulate_ssa(
     for _ in range(max_events):
         candidates: list[tuple[str, float]] = []
         for transition_id in net.enabled_transitions(marking):
-            rate = _rate_of(rates, transition_id, marking)
+            rate = rate_of(rates, transition_id, marking)
             if rate > 0:
                 candidates.append((transition_id, rate))
         total = sum(rate for _, rate in candidates)

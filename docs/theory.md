@@ -81,22 +81,82 @@ Q[i,i] = - Σ_{t : m_i → m_j, j ≠ i} λ_t
 - **SSA di Gillespie**: tempo di attesa `Exp(Σλ)`, transizione scelta con
   probabilità proporzionale al tasso; simulazione esatta sample-path.
 
-## 4. Ponte process mining
+## 4. Reti di Petri stocastiche generalizzate (GSPN)
+
+`core/gspn.py` estende le SPN con transizioni **immediate** (tempo nullo, peso
+e priorità) e **guardie** sulla marcatura. Le GSPN alternano marcature
+*tangibili* (solo transizioni timed abilitate) e *vanishing* (almeno una
+immediata abilitata).
+
+- **Semantica**: in una marcatura, se esistono immediate abilitate si sceglie
+  prima la classe a priorità minima (numero più basso), poi si campiona la
+  transizione con probabilità proporzionale al peso. Le timed competono in
+  corsa esponenziale solo nelle marcature tangibili.
+- **Eliminazione degli stati vanishing**: per ogni marcatura di partenza si
+  costruisce la sotto-catena immediata con matrice `Q` (transizioni tra
+  vanishing) e `R` (assorbimento nei tangibili), si risolve la *fundamental
+  matrix* `N = (I − Q)^{-1}` e si ottiene la distribuzione di assorbimento
+  `N·R`, oltre ai firing attesi per ogni immediata
+  (`expected_firings[j] = Σ_u N[start,u]·p_j(u)`). Una classe chiusa senza
+  uscita tangibile produce `ImmediateLoopError`.
+- **Generatore tangibile**: `Q[i,j] += λ_t(m_i)·p(m_i → m_j)`; i self-loop
+  netti (ritorni alla stessa marcatura tangibile) sono contabilizzati a parte
+  e non alterano il generatore. I throughput delle immediate si ricavano dai
+  flussi accumulati: `θ_j = Σ_i π_i · flow[i,j]`.
+
+## 5. Discovery stocastica da event log
+
+`mining/stochastic_discovery.py` stima i tassi esponenziali con massima
+verosimiglianza. Per un processo a corse esponenziali, il tempo speso in una
+marcatura è `Exp(Σ λ)` e la transizione che scatta è scelta con probabilità
+`λ_t / Σ λ`; la verosimiglianza si massimizza con:
+
+```
+rate(t) = n_firing(t) / tempo_in_cui_t_abilitata(t)
+```
+
+- Il **replay token-based** individua la transizione che produce ogni evento e
+  le eventuali mosse silenti; l'intervallo di tempo tra eventi consecutivi è
+  attribuito alla marcatura in cui la transizione è abilitata (dopo le mosse
+  silenti). La prima attesa di ogni caso non è osservabile: i processi ciclici
+  (failure/repair, code) sono stimabili per intero.
+- Le scelte empiriche per marcatura (`choice_probabilities`) espongono le
+  frequenze relative delle transizioni in conflitto, equivalenti ai rapporti
+  tra i tassi nelle corse esponenziali.
+- `compare_rates` quantifica l'errore relativo rispetto ai tassi di
+  riferimento; nei test sintetici l'errore medio resta sotto il 3–5% con 500
+  casi.
+
+## 6. Ponte process mining
 
 - **Simulazione token-tagged** (`core/simulation.py`): ogni token porta il
   `case_id`; ogni caso parte dalla marcatura iniziale e termina quando un token
   raggiunge un posto pozzo. Produce un event log compatibile XES/PM4Py.
+  `simulate_stochastic_event_log` genera inoltre log temporizzati con SSA a
+  partire da tassi noti (usato per validare la discovery).
 - **Discovery** (`mining/discovery.py`): PM4Py (inductive miner, alpha,
   heuristics, ILP) e conversione del modello PM4Py in rete interna via PNML.
 - **Token-based replay** (`mining/conformance.py`): formula standard
   `fitness = 0.5·(1 − missing/consumed) + 0.5·(1 − remaining/produced)`, con
   ricerca greedy delle mosse silenziose quando l'attività non è abilitata.
   Sul modello scoperto la fitness coincide con PM4Py (1.0 nell'esempio end-to-end).
+- **Template** (`core/templates.py`): M/M/1/K, M/M/c/K, macchina
+  failure/repair, produttore-consumatore e retry, con forme chiuse usate come
+  oracoli nei test (geometrica troncata, Erlang-B, throughput di ciclo).
 
 ## Riferimenti
 
 - T. Murata, *Petri Nets: Properties, Analysis and Applications*, Proc. IEEE, 1989.
 - B. Berthomieu, M. Diaz, *Modeling and Verification of Time Dependent Systems Using Time Petri Nets*, IEEE TSE, 1991.
+- M. K. Molloy, *Performance Analysis Using Stochastic Petri Nets*, IEEE Trans. Computers, 1982.
+- M. Ajmone Marsan, G. Conte, G. Balbo, *A Class of Generalized Stochastic Petri Nets*, ACM TOCS, 1984.
 - M. Ajmone Marsan et al., *Modelling with Generalized Stochastic Petri Nets*, Wiley, 1995.
+- G. Balbo, *Introduction to Generalized Stochastic Petri Nets*, SFM 2007.
+- P. J. Haas, *Stochastic Petri Nets: Modelling, Stability, Simulation*, Springer, 2002.
+- A. Rogge-Solti, W. van der Aalst, *Discovering Stochastic Petri Nets with Arbitrary Delay Distributions from Event Logs*, BPM Workshops, 2014.
+- W. van der Aalst, S. J. J. Leemans, *Learning Generalized Stochastic Petri Nets From Event Data*, 2024.
+- S. J. J. Leemans, W. van der Aalst, *Stochastic Process Mining: Earth Movers' Stochastic Conformance*, Information Systems, 2021.
 - W. van der Aalst, *Process Mining: Data Science in Action*, Springer, 2016.
 - PM4Py: https://processintelligence.solutions/pm4py
+
+Bibliografia completa e annotata: [`references_spn.md`](references_spn.md).

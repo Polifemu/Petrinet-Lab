@@ -17,6 +17,9 @@ demo:
 report:
 	$(PY) examples/04_process_mining_roundtrip.py
 
+discover:
+	$(PY) examples/08_stochastic_discovery.py
+
 validate:
 	$(PY) examples/07_library_cross_validation.py
 

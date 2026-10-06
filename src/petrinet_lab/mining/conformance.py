@@ -46,7 +46,7 @@ def token_replay(
         produced = 1
         missing = 0
         for activity in trace:
-            action, silent_path = _next_action(net, marking, activity, label_map, silent, silent_depth, silent_visits)
+            action, silent_path = next_action(net, marking, activity, label_map, silent, silent_depth, silent_visits)
             for silent_transition in silent_path:
                 marking = net.fire(marking, silent_transition)
             if action is not None:
@@ -84,7 +84,7 @@ def token_replay(
     return results
 
 
-def _next_action(net, marking, activity, label_map, silent, max_depth, max_visits):
+def next_action(net, marking, activity, label_map, silent, max_depth, max_visits):
     candidates = [tid for tid in label_map.get(activity, []) if net.enabled(marking, tid)]
     if candidates:
         return candidates[0], []

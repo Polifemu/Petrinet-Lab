@@ -21,6 +21,16 @@ Autore: **Filippo Polidori** — AI & Process Automation | BPM & Process Mining
 - **Reti stocastiche**: generazione esplicita del **CTMC** (tassi anche
   dipendenti dalla marcatura), distribuzione stazionaria, **uniformization**,
   throughput, sojourn time e **simulazione esatta di Gillespie**.
+- **GSPN**: builder con transizioni **immediate** (peso, priorità), **guardie**
+  sulla marcatura ed eliminazione esatta degli stati **vanishing**
+  (`(I−Q)^{-1}R`), inclusi i throughput delle immediate.
+- **Template SPN pronti**: M/M/1/K, M/M/c/K, macchina failure/repair,
+  produttore-consumatore, retry con rework — validati contro le forme chiuse
+  (geometrica troncata, Erlang-B, throughput di ciclo).
+- **Discovery stocastica**: stima a massima verosimiglianza dei **tassi
+  esponenziali da event log** con replay token-based, conteggi di scelta per
+  marcatura e confronto con i tassi di riferimento (errore medio ~2% su 500
+  casi simulati).
 - **Round-trip process mining**: modello → event log token-tagged → discovery
   PM4Py (inductive miner/alpha/heuristics/ILP) → conformance con token replay
   interno e alignments PM4Py.
@@ -30,8 +40,8 @@ Autore: **Filippo Polidori** — AI & Process Automation | BPM & Process Mining
 - **Agenti LangGraph**: ReAct singolo con 8 tool JSON, **orchestrazione
   multi-agente** supervisor + 5 specialisti, provider cloud o **LLM locali**
   (LM Studio/Ollama con auto-detect), e **dashboard Streamlit**.
-- **66 test** con casi analitici (M/M/1/K, macchina failure/repair, esempi di
-  concorrenza e time-lock).
+- **93 test** con casi analitici (M/M/1/K, M/M/c/K, Erlang-B, macchina
+  failure/repair, retry, esempi di concorrenza e time-lock).
 
 ## Risultati di esempio
 
@@ -45,6 +55,7 @@ Autore: **Filippo Polidori** — AI & Process Automation | BPM & Process Mining
 | Macchina failure(λ=1)/repair(λ=3) | stazionaria **0.75/0.25**, throughput 0.75, SSA coerente |
 | M/M/1/K (K=3, λ=1, μ=2) | stazionaria = geometrica troncata analitica |
 | Cross-validation `cyclic_cell`, `parallel_workflow`, weighted, deadlock | stati/edge **identici** tra motore interno, SNAKES e PM4Py (`make validate`) |
+| Discovery stocastica su 500 casi simulati (machine break/repair) | tassi **1.04 / 3.02** vs 1.0 / 3.0 (errore medio 2.4%) |
 
 ## Quickstart
 
@@ -56,6 +67,7 @@ make test                    # 66 test
 make demo                    # esempio 01 -> 03
 make report                  # round-trip process mining -> output/
 make validate                # cross-validation con SNAKES e PM4Py
+make discover                # GSPN + discovery stocastica dei tassi da log
 ```
 
 Uso minimale:
@@ -95,6 +107,24 @@ ctmc = build_ctmc(net, {"start": 2.0, "finish": 1.0})
 print(stationary_distribution(ctmc))           # -> [1/3, 2/3]
 ```
 
+GSPN (transizioni immediate, priorità, pesi, guardie) e discovery stocastica:
+
+```python
+from petrinet_lab.core.gspn import build_gspn_ctmc, immediate_throughputs
+from petrinet_lab.core.templates import mmc
+from petrinet_lab.mining.stochastic_discovery import estimate_rates
+
+ctmc = build_gspn_ctmc(mmc(servers=2, buffer=1))       # M/M/2/3
+print(immediate_throughputs(ctmc))                     # throughput della "start"
+
+# stima dei tassi da un log (list[SimulatedEvent], tracce con timestamp, DataFrame o XES)
+from petrinet_lab.core.simulation import simulate_stochastic_event_log
+
+events = simulate_stochastic_event_log(net, {"start": 2.0, "finish": 1.0}, n_cases=200, seed=1)
+result = estimate_rates(net, events)
+print(result.rates)                                    # MLE: firing / tempo abilitata
+```
+
 ## Agenti LLM (cloud o locali) e dashboard
 
 ```bash
@@ -126,14 +156,17 @@ make app                         # Streamlit su http://localhost:8501
 
 ```text
 src/petrinet_lab/
-  core/       model, pnml, reachability, invariants, temporal, stochastic, simulation, viz
-  mining/     discovery (PM4Py), conformance (token replay + alignments), compare
+  core/       model, pnml, reachability, invariants, temporal, stochastic,
+              gspn (immediate/priorità/guardie), templates, simulation, viz
+  mining/     discovery (PM4Py), conformance (token replay + alignments),
+              stochastic_discovery (stima tassi), compare
   interop/    bridge SNAKES (oracolo semantico) e PM4Py (transition system)
   agent/      tools (JSON), agent + multiagent (LangGraph), app (Streamlit)
-tests/        66 test
+tests/        93 test
 examples/     01 struttura, 02 temporali, 03 stocastiche, 04 round-trip mining,
-              05 agent, 06 multi-agente, 07 cross-validation librerie
-docs/         teoria, architettura, multi-agente, materiale CV/colloquio
+              05 agent, 06 multi-agente, 07 cross-validation librerie,
+              08 GSPN + discovery stocastica
+docs/         teoria, architettura, multi-agente, bibliografia SPN, CV/colloquio
 ```
 
 ### Hand-rolled + librerie: dove e perché
@@ -150,7 +183,9 @@ docs/         teoria, architettura, multi-agente, materiale CV/colloquio
 
 La teoria completa (formule, semantica, algoritmi) è in
 [`docs/theory.md`](docs/theory.md); l'architettura in
-[`docs/architecture.md`](docs/architecture.md].
+[`docs/architecture.md`](docs/architecture.md); manuali e articoli sulle reti
+di Petri stocastiche (GSPN, DSPN, discovery) in
+[`docs/references_spn.md`](docs/references_spn.md).
 
 ## Progetti collegati
 
